@@ -3,7 +3,12 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/STM32F103C6TA/Core/Inc",
+                "${workspaceFolder}/STM32F103C6TA/Drivers/STM32F1xx_HAL_Driver/Inc",
+                "${workspaceFolder}/STM32F103C6TA/Drivers/CMSIS/Device/ST/STM32F1xx/Include",
+                "${workspaceFolder}/STM32F103C6TA/Drivers/CMSIS/Include"
+                
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",

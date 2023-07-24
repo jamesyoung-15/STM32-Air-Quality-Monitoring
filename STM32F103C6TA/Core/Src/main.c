@@ -21,7 +21,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "sgp30.h"
+#include "am2320.h"
+#include "esp01.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,6 +44,8 @@
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 
+CAN_HandleTypeDef hcan;
+
 I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef huart1;
@@ -58,6 +62,7 @@ static void MX_ADC1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_CAN_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -74,7 +79,9 @@ static void MX_USART2_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  char sgp30_buffer[50];
+  char am2320_buffer[50];
+  char sensor_buffer[100];
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -99,7 +106,26 @@ int main(void)
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
+  MX_CAN_Init();
   /* USER CODE BEGIN 2 */
+
+
+  // Reset module
+  resetESP01();
+
+  // Connect to Wi-Fi
+  connectWifi("YangFamily", "yang27764892");
+  HAL_Delay(2500);
+
+  checkIPAddr();
+
+  HAL_Delay(500);
+
+  // initialize SGP30 to air quality
+  if(initSGP30(&hi2c1)!=0){
+    sprintf(sgp30_buffer, "Error! Failed to initialize SGP30.");
+    HAL_UART_Transmit(&huart2, (uint8_t*)sgp30_buffer, strlen(sgp30_buffer), 1000);
+  }
 
   /* USER CODE END 2 */
 
@@ -110,11 +136,46 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-    HAL_Delay(1000);
+    
+    // read and print temp and humidity
+    float temp, humidity;
+    uint8_t am2320_status = getAM2320Data(&hi2c1, &temp, &humidity);
+    if(am2320_status == 0){
+      sprintf(sgp30_buffer, "Temperature: %.2f°C\nHumidity: %.2f%%", temp, humidity);
+    }
+    else if(am2320_status == 1){
+      sprintf(sgp30_buffer, "Error! Couldn't transmit to AM2320. \n");
+    }
+    else{
+      sprintf(sgp30_buffer, "Error! Couldn't read from AM2320. \n");
+    }
 
-    uint8_t msg[] = "Hello World!\n";
-    HAL_UART_Transmit(&huart2, msg, strlen((char*)msg), 1000);
+    // HAL_UART_Transmit(&huart2, (uint8_t*)sgp30_buffer, strlen(sgp30_buffer), 1000);
+
+    HAL_Delay(200);
+    
+    // read and print co2 and tvoc
+    uint16_t co2, tvoc;
+    uint8_t sgp30_status = getSGP30Data(&hi2c1, &co2, &tvoc);
+
+    if(sgp30_status == 0){
+      sprintf(am2320_buffer, "CO2: %i ppm\nTVOC: %i ppb", co2,tvoc);
+    }
+    else if(sgp30_status == 1){
+      sprintf(am2320_buffer, "Error! Couldn't transmit to SGP30. \n");
+    }
+    else{
+      sprintf(am2320_buffer, "Error! Couldn't read from SGP30. \n");
+    }
+
+    // HAL_UART_Transmit(&huart2, (uint8_t*)am2320_buffer, strlen(am2320_buffer), 1000);
+
+    sprintf(sensor_buffer, "%s\n%s", sgp30_buffer, am2320_buffer);
+    HAL_UART_Transmit(&huart2, (uint8_t*)sensor_buffer, strlen(sensor_buffer), 1000);
+
+    // checkAT();
+
+    HAL_Delay(5000);
   }
   /* USER CODE END 3 */
 }
@@ -207,8 +268,44 @@ static void MX_ADC1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN ADC1_Init 2 */
-
   /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief CAN Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CAN_Init(void)
+{
+
+  /* USER CODE BEGIN CAN_Init 0 */
+
+  /* USER CODE END CAN_Init 0 */
+
+  /* USER CODE BEGIN CAN_Init 1 */
+
+  /* USER CODE END CAN_Init 1 */
+  hcan.Instance = CAN1;
+  hcan.Init.Prescaler = 16;
+  hcan.Init.Mode = CAN_MODE_NORMAL;
+  hcan.Init.SyncJumpWidth = CAN_SJW_1TQ;
+  hcan.Init.TimeSeg1 = CAN_BS1_1TQ;
+  hcan.Init.TimeSeg2 = CAN_BS2_1TQ;
+  hcan.Init.TimeTriggeredMode = DISABLE;
+  hcan.Init.AutoBusOff = DISABLE;
+  hcan.Init.AutoWakeUp = DISABLE;
+  hcan.Init.AutoRetransmission = DISABLE;
+  hcan.Init.ReceiveFifoLocked = DISABLE;
+  hcan.Init.TransmitFifoPriority = DISABLE;
+  if (HAL_CAN_Init(&hcan) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CAN_Init 2 */
+
+  /* USER CODE END CAN_Init 2 */
 
 }
 
@@ -274,7 +371,8 @@ static void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-
+  HAL_UART_MspInit(&huart1);
+  HAL_UART_Receive_IT(&huart1, (uint8_t *)&single_buffer, 1);
   /* USER CODE END USART1_Init 2 */
 
 }
@@ -330,7 +428,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 
   /*Configure GPIO pin : PC13 */
   GPIO_InitStruct.Pin = GPIO_PIN_13;
