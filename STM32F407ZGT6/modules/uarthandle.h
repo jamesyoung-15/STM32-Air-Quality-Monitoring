@@ -5,12 +5,12 @@
 
 
 /**
- * @brief Shows buffer message to Serial monitor through another UART
+ * @brief Sends string to ESP32 through UART
  * 
- * @param UART used for debug logging
- * @param message to be sent to debug UART
+ * @param UART used to connect to ESP32
+ * @param message string to be sent through UART
  */
-void printDebug(UART_HandleTypeDef *huart, char* message);
+void sendToESP32(UART_HandleTypeDef *huart, char* message);
 
 
 #endif

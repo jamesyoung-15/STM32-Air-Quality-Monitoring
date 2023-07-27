@@ -17,11 +17,11 @@ void sendData(char* command){
 void showResponse(){
     char temp[BUFFER_SIZE+25];
 	sprintf(temp,"Buffer response: \n%s\n", rx_buffer);
-	printDebug(&huart2, temp);
+	sendToESP32(&huart2, temp);
     clearBuffer();
 }
 
-// void printDebug(UART_HandleTypeDef *huart, char* message){
+// void sendToESP32(UART_HandleTypeDef *huart, char* message){
 //     HAL_UART_Transmit(huart, (uint8_t* )message, strlen(message), 5000);
 //     clearBuffer();
 // }
@@ -40,6 +40,10 @@ void checkAT(){
 }
 
 void resetESP01(){
+    sendData("AT+CIPCLOSE=0\r\n");
+    HAL_Delay(500);
+    sendData("AT+CIPSERVER=0\r\n");
+    HAL_Delay(500);
     sendData("AT+RST\r\n");
     HAL_Delay(12000);
     clearBuffer();
@@ -129,61 +133,46 @@ void createTCPServer()
 }
 
 void createUDPServer(){
-    printDebug(&huart2, "AT+CIPMUX=1\n");
     // allow multiple connections
     sendData("AT+CIPMUX=1\r\n");
     HAL_Delay(200);
     showResponse();
 
 
-    printDebug(&huart2, "AT+CIPSTART=0,\"UDP\",\"0.0.0.0\",4545,4545,2\n");
+    sendToESP32(&huart2, "AT+CIPSTART=0,\"UDP\",\"0.0.0.0\",4545,4545,2\n");
     // create udp server at port 4545
     sendData("AT+CIPSTART=0,\"UDP\",\"0.0.0.0\",4545,4545,2\r\n");
 	HAL_Delay(3000);
 	showResponse();
 }
 
-void sendUDPData(char* ip_address, float temperature, float humidity, uint16_t co2, uint16_t tvoc){
-    printDebug(&huart2, "Sending data through UDP");
-	// float temperature, humidity;
-	char data[80] = {0};
-
-    // uint8_t am2320_status = getAM2320Data(&hi2c1, &temperature, &humidity);
-    sprintf(data,"\nTemperature: %.2f °C\nHumidity: %.2f %%\nCO2: %i ppm\nTVOC: %i ppb\n",temperature, humidity, co2, tvoc);
-    printDebug(&huart2, data);
+void sendUDPData(char* ip_address, char* message){
+    sendToESP32(&huart2, "Sending data through UDP");
 
 	char at_command[70]={0};
-	sprintf(at_command,"AT+CIPSEND=0,%i,\"%s\",4545\r\n",strlen(data),ip_address);
+	sprintf(at_command,"AT+CIPSEND=0,%i,\"%s\",4545\r\n",strlen(message),ip_address);
 	sendData(at_command);
 	HAL_Delay(100);
-	sendData(data);
+	sendData(message);
 	HAL_Delay(100);
     clearBuffer();
 }
 
-void sendTCPData(float temperature, float humidity){
-    printDebug(&huart2, "Sending data through TCP\n");
-	// float temperature, humidity;
-	char data[512] = {0};
-
-    // uint8_t am2320_status = getAM2320Data(&hi2c1, &temperature, &humidity);
-    sprintf(data,"H");
-    
-
-	char at_command[70]={0};
-	sprintf(at_command,"AT+CIPSEND=0,%i\r\n",strlen(data)-1);
+void sendTCPData(char* message){
+	char http_response[200] = {0};
+	char at_command[50] = {0};
+	// Create HTTP response, append relevant data to response
+	sprintf(http_response,"HTTP/1.1 200 OK\r\nContent-Length: %i\r\nContent-Type: text/plain\r\n\r\n%s",strlen(message),message);
+	// Send data through ESP8266
+	sprintf(at_command,"AT+CIPSEND=0,%i\r\n",strlen(http_response));
 	sendData(at_command);
-    printDebug(&huart2, at_command);
 	HAL_Delay(100);
-	sendData(data);
-    printDebug(&huart2, data);
-	HAL_Delay(100);
-    clearBuffer();
-    HAL_Delay(100);
+	sendData(http_response);
+	HAL_Delay(200);
+	showResponse();
 	sendData("AT+CIPCLOSE=0\r\n");
+	clearBuffer();
 }
-
-
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -197,13 +186,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         buffer_index++;
       }
 
-      if(buffer_index>4){
-        if(strstr(rx_buffer, "html")){
-            sendTCPData(25.5,55.5);
+      if(buffer_index>6){
+        if(strstr(rx_buffer, "HTTP")){
+            sendToESP32(&huart2, "Requested website\n");
+            sendTCPData("Hello!\r\n");
         }
       }
 
-    
+      HAL_UART_Receive_IT(&huart3, (uint8_t *)&single_buffer, 1);
    }
-   HAL_UART_Receive_IT(&huart3, (uint8_t *)&single_buffer, 1);
 }

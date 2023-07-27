@@ -39,13 +39,17 @@ void setup() {
   // UART Setup
   Serial2.begin(115200, SERIAL_8N1, UART_RX2, UART_TX2);
 
+  
+  Serial.println("ESP32 Initialization...\n\n");
+
   // Wifi Setup
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  Serial.print("\nConnecting to WiFi ..");
+  Serial.print("\nConnecting to WiFi...");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
-    delay(1000);
+    // WiFi.reconnect();
+    delay(2000);
   }
   Serial.print("\nIP Address: ");
   Serial.println(WiFi.localIP());
@@ -84,35 +88,46 @@ void loop() {
 
   // Reading UART data
   while(Serial2.available()){
-    String sensorData = Serial2.readString();
-    // Serial.println(sensorData);
-    DynamicJsonDocument doc(1024);
-    deserializeJson(doc, sensorData);
-    temperature = doc["Temperature"];
-    humidity = doc["Humidity"];
-    co2 = doc["CO2"];
-    tvoc = doc["TVOC"];
-    char timeNow[50];
-    struct tm timeinfo;
-    if(!getLocalTime(&timeinfo)){
-      Serial.println("Failed to obtain time");
-      sprintf(timeNow, "Failed to obtain time");
+    // store uart data to string
+    String stmData = Serial2.readString();
+    // if data is json form, it means it contains sensor data, deconstruct it and append time to it
+    if(stmData.indexOf("{")!=-1){
+        Serial.println("\nData received from STM32: \n"+stmData+"\n");
+        DynamicJsonDocument doc(1024);
+        deserializeJson(doc, stmData);
+        temperature = doc["Temperature"];
+        humidity = doc["Humidity"];
+        co2 = doc["CO2"];
+        tvoc = doc["TVOC"];
+        char timeNow[50];
+        struct tm timeinfo;
+        if(!getLocalTime(&timeinfo)){
+          sprintf(timeNow, "Failed to obtain time");
+        }
+        else{
+            strftime(timeNow,50, "%A, %B %d %Y %H:%M", &timeinfo);
+        }
+        doc["time"] = timeNow;
+        message = "";
+        Serial.println("Reformatted data in JSON: \n");
+        serializeJsonPretty(doc, message);
+
+        Serial.println(message);
+
+        Serial.print("\nGo to IP address: "); Serial.print(WiFi.localIP()); Serial.println(" to view data.\n");
     }
+    // otherwise just some debug or other message
     else{
-        strftime(timeNow,50, "%A, %B %d %Y %H:%M:%S", &timeinfo);
+        Serial.println("Debug message: \n"+stmData);
     }
-    doc["time"] = timeNow;
-    message = "";
-    serializeJsonPretty(doc, message);
-
-    Serial.println(message);
-
+    
   }
 
   // Periodically check if ESP32 is connected to Wifi
   unsigned long currentMillis = millis();
   checkConnection(currentMillis);
 
+  // handle web server
   server.handleClient();
   delay(2);//allow the cpu to switch to other tasks
 }
@@ -123,9 +138,9 @@ void loop() {
  * 
  */
 void handleRoot() {
-  Serial.println("Sending website");
+  Serial.println("\n\nSending HTTP response\n");
 
-  server.send(200, "text/plain", message);
+  server.send(200, "application/json", message);
 }
 
 /**
@@ -133,8 +148,8 @@ void handleRoot() {
  * 
  */
 void handleNotFound(){
-    String message = "404 Error!";
-    server.send(404, "text/plain", message);
+    String errorMessage = "404 Error!";
+    server.send(404, "text/plain", errorMessage);
 }
 
 /**

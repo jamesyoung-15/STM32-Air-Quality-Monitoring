@@ -25,6 +25,7 @@
 #include "am2320.h"
 #include "esp01.h"
 #include "uarthandle.h"
+#include "ili9341.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -85,8 +86,8 @@ int main(void)
   char sensor_buffer[100];
 
   // For ESP-01, change these
-  // const char *ssid = "yourAP";
-  // const char *wifiPassword = "yourPassword";
+  // const char *ssid = "";
+  // const char *wifiPassword = "";
   // const char *ip_addr = "10.15.15.49"; // IP for UDP transmissions
   
   
@@ -117,51 +118,50 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
+  sendToESP32(&huart2, "\nInitializing STM32...\n\n\n");
 
-  /* SPI init for MCP2515 */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, 0);  
+
+  /* ESP-01 Set UDP or TCP Server */
   
-  // SPI CS pin should default high
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_SET);
- 
 
-
-
-
-  /* Set UDP Server on ESP01 */
-  
-  // printDebug(&huart2, "\nInitializing IoT station...\n\n\n");
-
-  // printDebug(&huart2,"\nResetting ESP-01 module... \n");
+  // sendToESP32(&huart2,"\nResetting ESP-01 module... \n");
   // // Reset ESP-01 module
   // resetESP01();
   // HAL_Delay(1000);
   // echoOff();
   // HAL_Delay(1000);
 
-  // printDebug(&huart2, "\nConnecting ESP-01 module to Wi-fi... \n");
+  // sendToESP32(&huart2, "\nConnecting ESP-01 module to Wi-fi... \n");
   // // // Connect ESP-01 to Wi-Fi
   // connectWifi(ssid, wifiPassword);
   // HAL_Delay(1500);
 
-  // // printDebug(&huart2, "\nCreating UDP Server... \n");
+  // // sendToESP32(&huart2, "\nCreating UDP Server... \n");
   // // createUDPServer();
   // // HAL_Delay(1500);
 
-  // checkIPAddr();
+  // // sendToESP32(&huart2, "\nCreating TCP Server... \n");
+  // createTCPServer();
   // HAL_Delay(1500);
 
-
+  // checkIPAddr();
+  // HAL_Delay(1500);
+  ILI9341_Init();
+  HAL_Delay(1000);
+  ILI9341_FillScreen(ILI9341_WHITE);
+  HAL_Delay(1000);
   /*  initialize SGP30 to check air quality */
-  printDebug(&huart2, "\nInitializing SGP30 sensor...\n");
+  sendToESP32(&huart2, "\nInitializing SGP30 sensor...\n");
   if(initSGP30(&hi2c1)!=0){
-    printDebug(&huart2, "Error! Failed to initialize SGP30.");
+    sendToESP32(&huart2, "Error! Failed to initialize SGP30.");
   }
   else{
-    printDebug(&huart2, "Sucessfully initialized SGP30.");
+    sendToESP32(&huart2, "Sucessfully initialized SGP30.");
   }
   HAL_Delay(1000);
   
-  printDebug(&huart2, "\nInitializion complete!\n");
+  sendToESP32(&huart2, "\nInitializion complete!\n");
 
 
 
@@ -182,10 +182,10 @@ int main(void)
     uint8_t am2320_status = getAM2320Data(&hi2c1, &temperature, &humidity);
     if(am2320_status != 0){
       if(am2320_status == 1){
-        printDebug(&huart2, "Error! Couldn't transmit to AM2320. \n");
+        sendToESP32(&huart2, "Error! Couldn't transmit to AM2320. \n");
       }
       else{
-        printDebug(&huart2, "Error! Couldn't read from AM2320. \n");
+        sendToESP32(&huart2, "Error! Couldn't read from AM2320. \n");
       }
       // set to 0 for failure
       temperature = 0;
@@ -201,10 +201,10 @@ int main(void)
     // check if i2c connection was sucessful
     if(sgp30_status != 0){
       if(sgp30_status == 1){
-         printDebug(&huart2, "Error! Couldn't transmit to SGP30. \n");
+         sendToESP32(&huart2, "Error! Couldn't transmit to SGP30. \n");
       }
       else{
-        printDebug(&huart2, "Error! Couldn't read from SGP30. \n");
+        sendToESP32(&huart2, "Error! Couldn't read from SGP30. \n");
       } 
       // set to 0 for failure
       co2 = 0;
@@ -213,14 +213,20 @@ int main(void)
 
     sprintf(sensor_buffer, "{\"Temperature\":%.2f,\"Humidity\":%.2f,\"CO2\":%i,\"TVOC\":%i}", temperature, humidity, co2, tvoc);
 
-    printDebug(&huart2, sensor_buffer);
+    sendToESP32(&huart2, sensor_buffer);
 
-    // sendUDPData("10.15.15.49", temperature, humidity, co2, tvoc);
     
-    // printDebug(&huart2, "Hello World!");
+    // sendToESP32(&huart2, "Hello World!");
+
+    ILI9341_WriteString(25,25, sensor_buffer, Font_11x18, ILI9341_BLACK, ILI9341_WHITE);
+    
+    // for esp-01
+    // sendUDPData("10.15.15.49", temperature, humidity, co2, tvoc);
+
 
 
     HAL_Delay(10000);
+    
 
   }
   /* USER CODE END 3 */
@@ -362,7 +368,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -466,7 +472,10 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOF, GPIO_PIN_10, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4|GPIO_PIN_5, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PF10 */
   GPIO_InitStruct.Pin = GPIO_PIN_10;
@@ -481,6 +490,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

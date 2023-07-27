@@ -95,16 +95,21 @@ void createTCPServer();
 void createUDPServer();
 
 
+
+/**
+ * @brief Sends sensor data through TCP
+ * 
+ * @param message to send
+ */
+void sendTCPData(char* message);
+
 /**
  * @brief Sends sensor data through UDP to specified IP address
  * 
  * @param ip_address to send data to
- * @param temperature from AM2320
- * @param humidity from AM2320
- * @param co2 from AM2320
- * @param tvoc from sgp30
+ * @param message to send
  */
-void sendUDPData(char* ip_address, float temperature,float humidity, uint16_t co2, uint16_t tvoc);
+void sendUDPData(char* ip_address, char* message);
 
 
 /**
@@ -112,8 +117,5 @@ void sendUDPData(char* ip_address, float temperature,float humidity, uint16_t co
  * 
  */
 void disconnectWifi();
-
-void sendTCPData(float temperature, float humidity);
-
 
 #endif

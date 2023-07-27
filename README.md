@@ -1,9 +1,16 @@
 # IoT-Air-Quality-Monitoring
-An Internet of Things (IoT) air quality monitoring project that measures the temperature, humidity, VOC, and eCO2 of a room and 
-sends the data to a HTTP web server to view the data remotely.
-Uses STM32 board for getting sensor data from AM2320 and SGP30 modules, then sends sensor data to ESP32 board to send data to server.
-<!-- sends the data to a Postgresql database via HTTP post request.  -->
+An Internet of Things (IoT) air quality monitoring project that measures the temperature, humidity, TVOC, and CO2 of a room and 
+sends the data to a local HTTP web server to view the data in JSON form.
+Uses STM32 board for getting sensor data from AM2320 and SGP30 modules, then sends sensor data to ESP32 board to send data to server. 
 
+
+## Project Architecture Overview
+STM32 collects both sensors' data via I2C connection, then sends data through UART to ESP32. ESP32 then packages data into JSON and sends JSON data to HTTP server.
+
+![](./resources/diagram.jpg)
+
+## Todo
+Will eventually store sensor data in some database (most likely Postgresql) on a VPS and develop some REST API to view past data. Then I will develop a simple front-end using API to show data nicely (could show in graphs or other ways).
 
 ## Hardware Overview
 - MCU: STM32F407ZGT6 and ESP32
@@ -11,8 +18,7 @@ Uses STM32 board for getting sensor data from AM2320 and SGP30 modules, then sen
 - Temperature and Humidty sensor: AM2320 (I2C)
 <!-- - Wireless Module: ESP-01 (UART) -->
 
-## Project Architecture Overview
-STM32 collects both sensors' data via I2C connection, then sends data through UART to ESP32. ESP32 then packages data into JSON and sends JSON data to HTTP server.
+
 
 ## Hardware Pin Connections
 
@@ -97,3 +103,5 @@ For VSCode Intellisense make sure to add include paths. Eg:
                 
 ]
 ```
+### Other Notes
+Tested on STM32F407 and STM32F103 boards. Also I have included support for ESP-01 but only for UDP transmissions. Had to use ESP32 for HTTP since don't know why I cannot establish a working TCP server with ESP-01 as it always hangs on AT+CIPSEND, but my code has worked on another development board in the past with built-in ESP-01 (see [my STM32 robot car project](https://github.com/jamesyoung-15/Mini-Robot-Cleaner)).
