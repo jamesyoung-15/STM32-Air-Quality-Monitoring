@@ -114,7 +114,7 @@ int main(void)
   resetESP01();
 
   // Connect to Wi-Fi
-  connectWifi("YangFamily", "yang27764892");
+  connectWifi("SSID", "Passwd");
   HAL_Delay(2500);
 
   checkIPAddr();

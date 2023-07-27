@@ -1,23 +1,99 @@
 # IoT-Air-Quality-Monitoring
-An Internet of Things (IoT) air quality monitoring project with STM32F103C6T6A (blue pill dev board) that measures the temperature, humidity, VOC, and eCO2 of a room and sends the data to a Postgresql database via HTTP post request. 
-
+An Internet of Things (IoT) air quality monitoring project that measures the temperature, humidity, VOC, and eCO2 of a room and 
+sends the data to a HTTP web server to view the data remotely.
+Uses STM32 board for getting sensor data from AM2320 and SGP30 modules, then sends sensor data to ESP32 board to send data to server.
+<!-- sends the data to a Postgresql database via HTTP post request.  -->
 
 
 ## Hardware Overview
-- MCU: STM32F103C6T6A
+- MCU: STM32F407ZGT6 and ESP32
 - Air Quality Sensor: SGP30 (I2C)
 - Temperature and Humidty sensor: AM2320 (I2C)
-- Wireless Module: ESP-01 (UART)
+<!-- - Wireless Module: ESP-01 (UART) -->
+
+## Project Architecture Overview
+STM32 collects both sensors' data via I2C connection, then sends data through UART to ESP32. ESP32 then packages data into JSON and sends JSON data to HTTP server.
+
+## Hardware Pin Connections
+
+### STM32
+|   Pin |   Connected To    |       Notes                       |
+|-------|-------------------|-----------------------------------|
+|   A2  |   ESP32 Pin 16    | USART (ESP32) Rx <-> Tx (STM32)   |
+|   A3  |   ESP32 Pin 17    | USART (ESP32) Tx <-> Rx (STM32)   |
+|   B6  |   AM2320 & SGP30  | I2C SCDA  |
+|   B7  |   AM2320 & SGP30  | I2C SCLCLK  |
+
+
+### ESP32
+|   Pin |   Connected To    |       Notes                       |
+|-------|-------------------|-----------------------------------|
+|   16  |   STM32 Pin A2    | USART (ESP32) Rx <-> Tx (STM32)   |
+|   17  |   STM32 Pin A3    | USART (ESP32) Tx <-> Rx (STM32)   |
 
 ## Development Tools/Workflow
 - OS: Linux (Arch)
 - IDE: VSCode
-    - Extensions:
-        - C/C++ Intellisense
-        - Cortex-Debug
-        - Makefile
+    - For STM32
+        - Extensions:
+            - C/C++ Intellisense
+            - Cortex-Debug
+            - Makefile
+    - For ESP32
+        - Arduino CLI
+            - Libraries:
+                - ArduinoJSON
+                - Arduino ESP32 Libraries
 - Other Tools:
-    - OpenOCD
-    - Arm GNU Toolchain (gcc-arm-none-eabi, etc.)
-    - CubeMX (generating code and libraries)
-    - Make
+    - For STM32:
+        - OpenOCD
+        - Arm GNU Toolchain (gcc-arm-none-eabi, etc.)
+        - CubeMX (generating code and libraries)
+        - Make
+
+
+
+## Notes
+### Documentations
+- [SGP30 Datasheet](https://www.mouser.com/pdfdocs/Sensirion_Gas_Sensors_SGP30_Datasheet_EN-1148053.pdf)
+- [AM2320 Datasheet](https://cdn-shop.adafruit.com/product-files/3721/AM2320.pdf)
+<!-- - [ESP-01 AT Commands](https://docs.espressif.com/projects/esp-at/en/release-v2.2.0.0_esp8266/AT_Command_Set/index.html) 
+(Note this is for V2.1 which contains some newer commands like MQTT that won't work with older versions) -->
+- [ESP32 Arduino Library Usage](https://docs.espressif.com/projects/arduino-esp32/en/latest/getting_started.html)
+
+### STM32 Terminal and VSCode Usage Reminders
+Add something similar to below to end of Makefile (make sure to change target to correct MCU). Then can just use `make build` to make and flash program into MCU.
+``` C 
+flash: all
+    openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c "program $(BUILD_DIR)/$(TARGET).elf verify reset exit"
+```
+
+Remember to include other files to compile in Makefile. Eg:
+``` C
+
+C_SOURCES =  \
+Core/Src/main.c \
+
+// ... Other files to compile ...
+
+// Below example of own files
+modules/am2320.c \
+modules/sgp30.c \
+modules/esp01.c
+```
+
+For VSCode Intellisense make sure to add include paths. Eg:
+``` json
+"includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/STM32F407ZGT6/Core/Inc",
+                "${workspaceFolder}/STM32F407ZGT6/Drivers/STM32F4xx_HAL_Driver/Inc",
+                "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
+                "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/Include",
+                "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/Core/Include",
+                "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/Core_A/Include",
+                "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/DSP/Include",
+                "${workspaceFolder}/STM32F407ZGT6/modules"
+                
+]
+```

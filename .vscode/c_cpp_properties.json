@@ -4,10 +4,18 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/STM32F103C6TA/Core/Inc",
-                "${workspaceFolder}/STM32F103C6TA/Drivers/STM32F1xx_HAL_Driver/Inc",
-                "${workspaceFolder}/STM32F103C6TA/Drivers/CMSIS/Device/ST/STM32F1xx/Include",
-                "${workspaceFolder}/STM32F103C6TA/Drivers/CMSIS/Include"
+                // "${workspaceFolder}/STM32F103C6TA/Core/Inc",
+                // "${workspaceFolder}/STM32F103C6TA/Drivers/STM32F1xx_HAL_Driver/Inc",
+                // "${workspaceFolder}/STM32F103C6TA/Drivers/CMSIS/Device/ST/STM32F1xx/Include",
+                // "${workspaceFolder}/STM32F103C6TA/Drivers/CMSIS/Include"
+                "${workspaceFolder}/STM32F407ZGT6/Core/Inc",
+                "${workspaceFolder}/STM32F407ZGT6/Drivers/STM32F4xx_HAL_Driver/Inc",
+                "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
+                "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/Include",
+                "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/Core/Include",
+                "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/Core_A/Include",
+                "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/DSP/Include",
+                "${workspaceFolder}/STM32F407ZGT6/modules"
                 
             ],
             "defines": [],
