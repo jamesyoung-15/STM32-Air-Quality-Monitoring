@@ -15,7 +15,8 @@
                 "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/Core/Include",
                 "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/Core_A/Include",
                 "${workspaceFolder}/STM32F407ZGT6/Drivers/CMSIS/DSP/Include",
-                "${workspaceFolder}/STM32F407ZGT6/modules"
+                "${workspaceFolder}/STM32F407ZGT6/modules",
+                "${workspaceFolder}/STM32F407ZGT6/ILI9341"
                 
             ],
             "defines": [],

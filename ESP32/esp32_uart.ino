@@ -39,7 +39,7 @@ void setup() {
   // UART Setup
   Serial2.begin(115200, SERIAL_8N1, UART_RX2, UART_TX2);
 
-  
+
   Serial.println("ESP32 Initialization...\n\n");
 
   // Wifi Setup
@@ -106,6 +106,13 @@ void loop() {
         }
         else{
             strftime(timeNow,50, "%A, %B %d %Y %H:%M", &timeinfo);
+            char messageBuffer[100];
+            sprintf(messageBuffer, "%s asd", timeNow);
+            Serial2.print(messageBuffer);
+            delay(50);
+            
+            sprintf(messageBuffer, "ESP32 IP: %s zgf", WiFi.localIP().toString().c_str());
+            Serial2.print(messageBuffer);
         }
         doc["time"] = timeNow;
         message = "";
@@ -126,7 +133,7 @@ void loop() {
   // Periodically check if ESP32 is connected to Wifi
   unsigned long currentMillis = millis();
   checkConnection(currentMillis);
-
+  
   // handle web server
   server.handleClient();
   delay(2);//allow the cpu to switch to other tasks

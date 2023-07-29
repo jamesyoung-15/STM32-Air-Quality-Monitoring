@@ -7,39 +7,11 @@
 #include "stm32f4xx_hal.h"
 #include "uarthandle.h"
 
-extern uint8_t single_buffer;
+extern uint8_t esp01_single_buffer;
 extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart2;
 extern I2C_HandleTypeDef hi2c1;
 
-/**
- * @brief Sends an AT command to ESP01 through UART
- * 
- * @param String of command to be sent to ESP01 
- */
-void sendData(char* command);
-
-
-/**
- * @brief Sets up stored buffer into a message to be printed. 
- * 
- */
-void showResponse();
-
-// /**
-//  * @brief Shows buffer message to Serial monitor through another UART
-//  * 
-//  * @param UART used for debug logging
-//  * @param message to be sent to debug UART
-//  */
-// void printDebug(UART_HandleTypeDef *huart, char* message);
-
-
-/**
- * @brief Clears buffer
- * 
- */
-void clearBuffer();
 
 
 /**

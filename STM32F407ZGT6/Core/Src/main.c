@@ -26,6 +26,7 @@
 #include "esp01.h"
 #include "uarthandle.h"
 #include "ili9341.h"
+#include "esp32.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,6 +49,7 @@ I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
 
 SPI_HandleTypeDef hspi1;
+DMA_HandleTypeDef hdma_spi1_tx;
 
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
@@ -59,6 +61,7 @@ UART_HandleTypeDef huart3;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_I2C2_Init(void);
@@ -111,6 +114,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
   MX_USART2_UART_Init();
   MX_I2C2_Init();
@@ -119,8 +123,6 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   sendToESP32(&huart2, "\nInitializing STM32...\n\n\n");
-
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, 0);  
 
   /* ESP-01 Set UDP or TCP Server */
   
@@ -147,9 +149,7 @@ int main(void)
 
   // checkIPAddr();
   // HAL_Delay(1500);
-  ILI9341_Init();
-  HAL_Delay(1000);
-  ILI9341_FillScreen(ILI9341_WHITE);
+
   HAL_Delay(1000);
   /*  initialize SGP30 to check air quality */
   sendToESP32(&huart2, "\nInitializing SGP30 sensor...\n");
@@ -163,7 +163,11 @@ int main(void)
   
   sendToESP32(&huart2, "\nInitializion complete!\n");
 
-
+  /* LCD Init */
+  ILI9341_Init(0);
+  ILI9341_ClearScreen();
+  ILI9341_DrawString(55,10,"Air Quality", Font_11x18);
+  ILI9341_DrawString(15,30,"Monitoring Station", Font_11x18);
 
   /* USER CODE END 2 */
 
@@ -218,14 +222,23 @@ int main(void)
     
     // sendToESP32(&huart2, "Hello World!");
 
-    ILI9341_WriteString(25,25, sensor_buffer, Font_11x18, ILI9341_BLACK, ILI9341_WHITE);
+
+    sprintf(sensor_buffer, "Temperature: %.2f C", temperature);
+    ILI9341_DrawString(40,140, sensor_buffer, Font_7x10);
+    sprintf(sensor_buffer, "Humidity: %.2f %%", humidity);
+    ILI9341_DrawString(40,160, sensor_buffer, Font_7x10);
+    sprintf(sensor_buffer, "CO2:%i ppm", co2);
+    ILI9341_DrawString(40,180, sensor_buffer, Font_7x10);
+    sprintf(sensor_buffer, "TVOC:%i ppb", tvoc);
+    ILI9341_DrawString(40,200, sensor_buffer, Font_7x10);
     
+
     // for esp-01
     // sendUDPData("10.15.15.49", temperature, humidity, co2, tvoc);
 
 
 
-    HAL_Delay(10000);
+    HAL_Delay(15000);
     
 
   }
@@ -368,7 +381,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -411,7 +424,8 @@ static void MX_USART2_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART2_Init 2 */
-
+  HAL_UART_MspInit(&huart2);
+  HAL_UART_Receive_IT(&huart2, (uint8_t *)&esp32SingleBuffer, 1);
   /* USER CODE END USART2_Init 2 */
 
 }
@@ -444,9 +458,25 @@ static void MX_USART3_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART3_Init 2 */
-  HAL_UART_MspInit(&huart3);
-  HAL_UART_Receive_IT(&huart3, (uint8_t *)&single_buffer, 1);
+  // HAL_UART_MspInit(&huart3);
+  // HAL_UART_Receive_IT(&huart3, (uint8_t *)&esp01_single_buffer, 1);
   /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
 
 }
 

@@ -1,8 +1,9 @@
 # IoT-Air-Quality-Monitoring
-An Internet of Things (IoT) air quality monitoring project that measures the temperature, humidity, TVOC, and CO2 of a room and 
-sends the data to a local HTTP web server to view the data in JSON form.
+An Internet of Things (IoT) air quality monitoring project that measures the temperature, humidity, TVOC, and CO2 of a room and sends the data to a local HTTP web server to view the data in JSON form.
 Uses STM32 board for getting sensor data from AM2320 and SGP30 modules, then sends sensor data to ESP32 board to send data to server. 
 
+## Project Preview
+![](./resources/hardwareSetup.jpg)
 
 ## Project Architecture Overview
 STM32 collects both sensors' data via I2C connection, then sends data through UART to ESP32. ESP32 then packages data into JSON and sends JSON data to HTTP server.
@@ -16,6 +17,7 @@ Will eventually store sensor data in some database (most likely Postgresql) on a
 - MCU: STM32F407ZGT6 and ESP32
 - Air Quality Sensor: SGP30 (I2C)
 - Temperature and Humidty sensor: AM2320 (I2C)
+- LCD: ILI9341 (SPI)
 <!-- - Wireless Module: ESP-01 (UART) -->
 
 
@@ -29,6 +31,11 @@ Will eventually store sensor data in some database (most likely Postgresql) on a
 |   A3  |   ESP32 Pin 17    | USART (ESP32) Tx <-> Rx (STM32)   |
 |   B6  |   AM2320 & SGP30  | I2C SCDA  |
 |   B7  |   AM2320 & SGP30  | I2C SCLCLK  |
+|   A5  |   ILI9341         | SPI SCK |
+|   A7  |   ILI9341         | SPI MOSI |
+|   C4  |   ILI9341         | SPI CS |
+|   C5  |   ILI9341         | ILI9341 Reset |
+|   B0  |   ILI9341         | ILI9341 DC |
 
 
 ### ESP32
@@ -66,6 +73,8 @@ Will eventually store sensor data in some database (most likely Postgresql) on a
 <!-- - [ESP-01 AT Commands](https://docs.espressif.com/projects/esp-at/en/release-v2.2.0.0_esp8266/AT_Command_Set/index.html) 
 (Note this is for V2.1 which contains some newer commands like MQTT that won't work with older versions) -->
 - [ESP32 Arduino Library Usage](https://docs.espressif.com/projects/arduino-esp32/en/latest/getting_started.html)
+- [ILI9341](http://www.lcdwiki.com/res/MAR2808/ILI9341_Datasheet.pdf)
+    - ILI9341 code based on [LCD Wiki provided demo codes](http://www.lcdwiki.com/2.8inch_IPS_SPI_Module_ILI9341)
 
 ### STM32 Terminal and VSCode Usage Reminders
 Add something similar to below to end of Makefile (make sure to change target to correct MCU). Then can just use `make build` to make and flash program into MCU.
