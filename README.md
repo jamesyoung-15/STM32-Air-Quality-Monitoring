@@ -1,19 +1,18 @@
 # IoT-Air-Quality-Monitoring
 An Internet of Things (IoT) air quality monitoring project that measures the temperature, humidity, TVOC, and CO2 of a room and sends the data to a local HTTP web server to view the data in JSON form.
-Uses STM32 board for getting sensor data from AM2320 and SGP30 modules, then sends sensor data to ESP32 board to send data to server. 
+Uses STM32 board for getting sensor data, then sends sensor data to ESP32 board to send data to client. Also includes LCD screen that displays sensor data, IP address of ESP32, and current time as well.
 
 ## Project Preview
-![](./resources/hardware.jpg)
 
 ![](./resources/webdemo.jpg)
 
+![](./resources/hardware.jpg)
+
+
 ## Project Architecture Overview
-STM32 collects both sensors' data via I2C connection, then sends data through UART to ESP32. ESP32 then packages data into JSON and sends JSON data to HTTP server.
+STM32 collects both sensors' data via I2C connection and then sends data through UART to ESP32. ESP32 then packages data into JSON and sends JSON data to HTTP server. ESP32 also sends its own IP address and current time to STM32. Using all data gathered, STM32 displays data to LCD through SPI.
 
 ![](./resources/iotdiagram.png)
-
-## Todo
-Will eventually store sensor data in some database (most likely Postgresql) on a VPS and develop some REST API to view past data. Then I will develop a simple front-end using API to show data nicely (could show in graphs or other ways).
 
 ## Hardware Overview
 - MCU: STM32F407ZGT6 and ESP32
@@ -22,6 +21,8 @@ Will eventually store sensor data in some database (most likely Postgresql) on a
 - LCD: ILI9341 (SPI)
 <!-- - Wireless Module: ESP-01 (UART) -->
 
+## Todo
+Will eventually store sensor data in some database (most likely Postgresql) on a VPS and develop some REST API to view past data. Then I will develop a simple front-end using API to show data nicely (could show in graphs or other ways).
 
 
 ## Hardware Pin Connections
