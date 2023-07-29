@@ -8,7 +8,7 @@ Uses STM32 board for getting sensor data from AM2320 and SGP30 modules, then sen
 ## Project Architecture Overview
 STM32 collects both sensors' data via I2C connection, then sends data through UART to ESP32. ESP32 then packages data into JSON and sends JSON data to HTTP server.
 
-![](./resources/diagram.jpg)
+![](./resources/iotdiagram.png)
 
 ## Todo
 Will eventually store sensor data in some database (most likely Postgresql) on a VPS and develop some REST API to view past data. Then I will develop a simple front-end using API to show data nicely (could show in graphs or other ways).
