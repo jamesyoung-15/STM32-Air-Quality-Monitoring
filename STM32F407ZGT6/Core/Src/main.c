@@ -238,7 +238,7 @@ int main(void)
 
 
 
-    HAL_Delay(15000);
+    HAL_Delay(60000);
     
 
   }

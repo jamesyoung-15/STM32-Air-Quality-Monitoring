@@ -15,9 +15,9 @@
 // For interval tracking
 unsigned long previousMillis = 0; 
 
-// Wifi credentials.
-const char *ssid = "YangFamily";
-const char *password = "yang27764892";
+// Wifi credentials. 
+const char *ssid = "SSID";
+const char *password = "passwd";
 
 // Port to listen on for HTTP server
 WebServer server(80);
