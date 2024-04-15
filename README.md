@@ -22,8 +22,9 @@ STM32 collects both sensors' data via I2C connection and then sends data through
 <!-- - Wireless Module: ESP-01 (UART) -->
 
 ## Todo
-Will eventually store sensor data in some database (most likely Postgresql) on a VPS and develop some REST API to view past data. Then I will develop a simple front-end using API to show data nicely (could show in graphs or other ways).
+[x] Will eventually store sensor data in some database (most likely Postgresql) on a VPS and develop some REST API to view past data. Then I will develop a simple front-end using API to show data nicely (could show in graphs or other ways).
 
+Completed, see [this](https://github.com/jamesyoung-15/IoT-Home-Sensor-Dashboard) project.
 
 ## Hardware Pin Connections
 
