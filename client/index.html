@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <script src="https://kit.fontawesome.com/2e277278ff.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-bar">
+            <div class="nav-logo">
+                <a href="#" class="nav-link"><h2 class="main-title">Air Quality Dashboard</h2><h2 class="hidden-title">Dashboard</h2></a>
+            </div>
+            <div class="nav-items">
+                <ul class="nav-list">
+                    <li class="nav-list-item">
+                        <a target="_blank" href="https://github.com/jamesyoung-15/IoT-Home-Sensor-Dashboard" class="nav-link">Source Code <i class="fa-brands fa-github"></i></a>
+                    </li>
+                    <li>
+                        <a target="_blank" href="https://8cdgfq0r3c.execute-api.us-east-1.amazonaws.com/prod/sensor-data" class="nav-link">API <i class="fa-solid fa-link"></i></a>
+                    </li>
+                </ul>
+            </div>
+            <div class="hamburger">
+                <div class="hamburger-bar"></div>
+                <div class="hamburger-bar"></div>
+                <div class="hamburger-bar"></div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- <section class="sidebar">
+
+    </section> -->
+
+    <main class="main">
+        <section class="dashboard">
+            <div class="card">
+                <div class="card-title">
+                    <h4>Temperature</h4>
+                </div>
+                <div class="card-logo">
+                    <i class="fa-solid fa-temperature-three-quarters fa-5x"></i>
+                </div>
+                <div class="card-info">
+                    <span class="card-data" id="temperature">Loading...</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">
+                    <h4>Humidity</h4>
+                </div>
+                <div class="card-logo">
+                    <i class="fa-solid fa-droplet fa-5x"></i>
+                </div>
+                <div class="card-info">
+                    <span class="card-data" id="humidity">Loading...</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">
+                    <h4>TVOC</h4>
+                </div>
+                <div class="card-logo">
+                    <i class="fa-solid fa-mask-ventilator fa-5x"></i>
+                </div>
+                <div class="card-info">
+                    <span class="card-data" id="tvoc">Loading...</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">
+                    <h4>eCO2</h4>
+                </div>
+                <div class="card-logo">
+                    <i class="fa-solid fa-mask-face fa-5x"></i>
+                </div>
+                <div class="card-info">
+                    <span class="card-data" id="eco2">Loading...</span>
+                </div>
+            </div>
+            <div class="card chart-card">
+                <select name="charts" id="select-charts" onchange="changeChart(this)">
+                    <option value="Temperature" selected>Temperature Chart</option>
+                    <option value="Humidity">Humidity Chart</option>
+                    <option value="TVOC">TVOC Chart</option>
+                    <option value="eCO2">eC02 Chart</option>
+                </select>
+                <canvas class="chart" id="myChart"></canvas>
+                <p>Note: Chart data uses 10 latest data from DynamoDB</p>
+            </div>
+        <!-- <div class="card">
+            
+        </div> -->
+        </section>
+        <section class="time-info">
+            <h3>Website Accessed Time</h3>
+            <span class="time-now">2023-12-14 23:59:58</span>
+            <h3>Last Data Measured Time</h3>
+            <span class="time-taken"></span>
+        </section>
+    </main>
+    <footer>
+        <section class="footer">
+            <p>Full data in JSON form available with API 
+                <a href="https://8cdgfq0r3c.execute-api.us-east-1.amazonaws.com/prod/sensor-data" target="_blank">here</a>. 
+            </p>
+            <p>Sensor measured and sent every 10 min, database autodeletes entries after 7 days.</p>
+        </section>
+    </footer>
+
+    <script src="index.js"></script>
+</body>
+</html>

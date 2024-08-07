@@ -4,15 +4,19 @@ Uses STM32 board for getting sensor data, then sends sensor data to ESP32 board 
 
 ## Project Preview
 
-![](./resources/webdemo.jpg)
+![](./resources/dashboardPreview.png)
 
 ![](./resources/hardware.jpg)
 
 
 ## Project Architecture Overview
+
+![](./resources/diagram1.jpg)
+
 STM32 collects both sensors' data via I2C connection and then sends data through UART to ESP32. ESP32 then packages data into JSON and sends JSON data to HTTP server. ESP32 also sends its own IP address and current time to STM32. Using all data gathered, STM32 displays data to LCD through SPI.
 
-![](./resources/iotdiagram.png)
+
+Backend uses DynamoDB with API Gateway and Lambda proxy integration. Lambda uses NodeJS. Front-End is a simple HTML, CSS, Javascript that fetches and displays data using the API.
 
 ## Hardware Overview
 - MCU: STM32F407ZGT6 and ESP32
@@ -61,6 +65,10 @@ Completed, see [this](https://github.com/jamesyoung-15/IoT-Home-Sensor-Dashboard
             - Libraries:
                 - ArduinoJSON
                 - Arduino ESP32 Libraries
+    - AWS
+        - Lambda (NodeJS), API Gateway, DynamoDB
+    - Front-End
+        - HTML, CSS, JS
 - Other Tools:
     - For STM32:
         - OpenOCD
