@@ -1,6 +1,8 @@
 # IoT-Air-Quality-Monitoring
-An Internet of Things (IoT) air quality monitoring project that measures the temperature, humidity, TVOC, and CO2 of a room and sends the data to a local HTTP web server to view the data in JSON form.
-Uses STM32 board for getting sensor data, then sends sensor data to ESP32 board to send data to client. Also includes LCD screen that displays sensor data, IP address of ESP32, and current time as well.
+An Internet of Things (IoT) air quality monitoring project that measures the temperature, humidity, TVOC, and CO2 of a room and sends the data to AWS DynamoDB backend and a simple front-end to display data.
+
+Hardware uses STM32, ESP32, and some sensors (see below for more details).
+
 
 ## Project Preview
 
