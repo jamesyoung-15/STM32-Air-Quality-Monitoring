@@ -1,7 +1,7 @@
 # IoT-Air-Quality-Monitoring
-An Internet of Things (IoT) air quality monitoring project that measures the temperature, humidity, TVOC, and CO2 of a room and sends the data to AWS DynamoDB backend and a simple front-end to display data.
+An Internet of Things (IoT) air quality monitoring project that measures the temperature, humidity, TVOC, and CO2 of a room and sends the data to AWS DynamoDB backend and a [simple front-end to display data](https://airqualitydashboard.jyydev.xyz/).
 
-Hardware uses STM32, ESP32, and some sensors (see below for more details).
+Hardware uses STM32, ESP32, and some sensors (see below for more details). Dashboard is [here](https://airqualitydashboard.jyydev.xyz/).
 
 
 ## Project Preview
